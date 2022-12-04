@@ -1,3 +1,3 @@
-import main from './03/index.js';
+import main from './04/index.js';
 
 main();
