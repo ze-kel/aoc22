@@ -65,37 +65,14 @@ const getOperation2 = (line: string) => {
   const tokens = line.replace('  Operation: new = old ', '').split(' ');
   const isMultiply = tokens[0] === '*';
   const isByItself = tokens[1] === 'old';
-
-  if (isMultiply) {
-    if (isByItself) {
-      return ({ raw, statuses }) => {
-        Object.keys(statuses).forEach((key) => {
-          let newNum = statuses[key] * statuses[key];
-          if (newNum >= Number(key)) {
-            newNum -= Number(key) * Math.floor(newNum / Number(key));
-          }
-
-          statuses[key] = newNum;
-        });
-        return { raw, statuses };
-      };
-    } else {
-      return ({ raw, statuses }) => {
-        Object.keys(statuses).forEach((key) => {
-          let newNum = statuses[key] * Number(tokens[1]);
-          if (newNum >= Number(key)) {
-            newNum -= Number(key) * Math.floor(newNum / Number(key));
-          }
-
-          statuses[key] = newNum;
-        });
-        return { raw, statuses };
-      };
-    }
-  }
   return ({ raw, statuses }) => {
     Object.keys(statuses).forEach((key) => {
-      let newNum = statuses[key] + Number(tokens[1]);
+      let newNum;
+      if (isMultiply) {
+        newNum = statuses[key] * (isByItself ? statuses[key] : Number(tokens[1]));
+      } else {
+        newNum = statuses[key] + Number(tokens[1]);
+      }
       if (newNum >= Number(key)) {
         newNum -= Number(key) * Math.floor(newNum / Number(key));
       }
