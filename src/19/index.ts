@@ -1,6 +1,4 @@
 import fs from 'fs';
-import _get from 'lodash/get.js';
-
 import { log, time, timeEnd } from 'console';
 
 const reg = new RegExp(
