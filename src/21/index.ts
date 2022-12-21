@@ -36,58 +36,115 @@ const numbersArr = fs
     return content;
   });
 
-const nums: Record<string, Element> = {};
-
-numbersArr.forEach((n) => {
-  nums[n.name] = n;
-});
-
-numbersArr.forEach((n) => {
-  if (n.calc) {
-    nums[n.calc.a].in.push(n);
-    nums[n.calc.b].in.push(n);
-  }
-});
-
-const solve = (nums, id: string, second = false) => {
+const solve = (nums, id: string) => {
   const n = nums[id];
 
-  if (n.value) {
+  if (n.value !== null) {
     return n.value;
   }
 
   const a = solve(nums, n.calc.a);
   const b = solve(nums, n.calc.b);
 
-  if (id === 'root') {
-    return a === b;
-  }
-
   const resolved = eval(`${a} ${n.calc.operation} ${b}`);
   n.value = resolved;
   return resolved;
 };
 
+const freshCopy = () => {
+  const arr = cloneDeep(numbersArr);
+  const nums: Record<string, Element> = {};
+
+  arr.forEach((n) => {
+    nums[n.name] = n;
+  });
+  return nums;
+};
+
 const first = () => {
+  const nums = freshCopy();
   const r = solve(cloneDeep(nums), 'root');
-  log('1', r);
+  log('first', r);
+};
+
+const preSolve = (nums, id: string) => {
+  if (id === 'humn') {
+    return null;
+  }
+  const n: Element = nums[id];
+
+  if (n.value !== null) {
+    return n.value;
+  }
+
+  const a = preSolve(nums, n.calc.a);
+  const b = preSolve(nums, n.calc.b);
+
+  if (a !== null && b !== null) {
+    const res = eval(`${a} ${n.calc.operation} ${b}`);
+    n.value = res;
+    return res;
+  }
+
+  return null;
+};
+const reverseSolve = (nums, id: string, valToMatch: number) => {
+  if (id === 'humn') {
+    return valToMatch;
+  }
+  const n = nums[id];
+
+  const a: Element = nums[n.calc.a];
+  const b: Element = nums[n.calc.b];
+
+  if (a.value !== null) {
+    let newVal = 0;
+    switch (n.calc.operation) {
+      case '+':
+        newVal = valToMatch - a.value;
+        break;
+      case '-':
+        newVal = a.value - valToMatch;
+        break;
+      case '*':
+        newVal = valToMatch / a.value;
+        break;
+      case '/':
+        newVal = a.value / valToMatch;
+        break;
+    }
+    return reverseSolve(nums, b.name, newVal);
+  }
+
+  if (b.value !== null) {
+    let newVal = 0;
+    switch (n.calc.operation) {
+      case '+':
+        newVal = valToMatch - b.value;
+        break;
+      case '-':
+        newVal = b.value + valToMatch;
+        break;
+      case '*':
+        newVal = valToMatch / b.value;
+        break;
+      case '/':
+        newVal = b.value * valToMatch;
+        break;
+    }
+    return reverseSolve(nums, a.name, newVal);
+  }
 };
 
 const second = () => {
-  for (let i = 0; i < 1; i++) {
-    const n = cloneDeep(nums);
-    log(n.humn);
-    n['humn'].value = -100000000;
-    const r = solve(n, 'root', true);
-    const depA = n.root.calc.a;
-    const depB = n.root.calc.b;
-    log(`for i${i} a ${n[depA].value} b ${n[depB].value}`);
-    if (r) {
-      log('second', i);
-      return;
-    }
-  }
-  log('second fail');
+  const nums = freshCopy();
+  preSolve(nums, 'root');
+
+  // I pre checked that this is not dependent on our num
+  const right = solve(nums, nums.root.calc.b);
+
+  const left = reverseSolve(nums, nums.root.calc.a, right);
+  log('second', left);
 };
 
 const main = () => {
