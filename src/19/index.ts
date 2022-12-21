@@ -322,10 +322,8 @@ const second = () => {
 };
 
 const main = () => {
-  //first();
+  first();
   second();
 };
-
-//1395 too low
 
 export default main;
